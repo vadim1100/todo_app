@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS todoapp.tasks;
+DROP SCHEMA IF EXISTS todoapp;
