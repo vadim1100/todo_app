@@ -40,8 +40,8 @@ func (h *UsersHTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	response := RegisterResponse{
 		User: UserResponse{
-			output.User.ID,
-			output.User.Username,
+			ID: output.User.ID,
+			Username: output.User.Username,
 		},
 		Token: output.Token,
 	}
