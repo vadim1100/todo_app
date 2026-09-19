@@ -19,6 +19,15 @@ volume-clean:
 		echo "Очистка volume файлов отменена"; \
 	fi
 
+logs-clean:
+	@read -p "Очистить все лог-файлы? [y/n]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		docker run --rm -v "$(PROJECT_ROOT)/out:/out" alpine sh -c "rm -rf /out/logs" && \
+		echo "Лог-файлы очищены"; \
+	else \
+		echo "Очистка лог-файлов отменена"; \
+	fi
+
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
 		echo "Отсуствует нужный параметр seq. Пример вызова Makefile: make migrate-create seq=init"; \
@@ -44,10 +53,11 @@ migrate-action:
 	fi;
 	docker compose run --rm todoapp-postgres-migrate \
 		-path /migrations \
-		-database "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable" \
+		-database "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable" \
 		"$(action)"
 
 run:
-	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
-	go mod tidy && \
-	go run cmd/todoapp/main.go
+	@go mod tidy && \
+	go build -o ./bin/todoapp cmd/todoapp/main.go && \
+	export LOGGER_FOLDER=$(PROJECT_ROOT)/out/logs && \
+	exec ./bin/todoapp

@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
 	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/pool"
@@ -22,6 +25,7 @@ func main() {
 
 	if err != nil {
 		fmt.Println("failed to make logger: %w", err)
+		os.Exit(1)
 	}
 
 	serverConfig := core_http_server.NewConfigMust()
@@ -30,14 +34,17 @@ func main() {
 
 	jwtConfig := core_service_jwt.NewConfigMust()
 
-	ctx := context.Background()
+	ctx, ctxCancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT, syscall.SIGTERM,
+	)
+	defer ctxCancel()
 
 	logger.Debug("initializing postgres connection server")
 	pool, err := core_postgres_pool.NewConnectionPool(ctx, postgresConfig)
 
 	if err != nil {
-		logger.Error("failed to create database pool", zap.Error(err))
-		panic(err)
+		logger.Fatal("failed to create database pool", zap.Error(err))
 	}
 	defer pool.Close()
 
