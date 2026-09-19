@@ -8,32 +8,32 @@ import (
 	core_errors "github.com/vadim1100/todo_app/internal/core/errors"
 )
 
-func (s *UsersService) Register(ctx context.Context, input RegisterInput) (RegisterOutput, error) {
+func (s *UsersService) Register(ctx context.Context, input AuthInput) (AuthOutput, error) {
 	if err := validateUsername(input.Username); err != nil {
-		return RegisterOutput{}, fmt.Errorf("validate username %w", err)
+		return AuthOutput{}, fmt.Errorf("validate username %w", err)
 	}
 	if err := validatePassword(input.Password); err != nil {
-		return RegisterOutput{}, fmt.Errorf("validate password %w", err)
+		return AuthOutput{}, fmt.Errorf("validate password %w", err)
 	}
 
 	hash, err := s.hasher.Hash(input.Password)
 
 	if err != nil {
-		return RegisterOutput{}, fmt.Errorf("hash password %w", err)
+		return AuthOutput{}, fmt.Errorf("hash password %w", err)
 	}
 
 	user := core_domain.NewUserUninitialized(input.Username, hash)
 
 	createdUser, err := s.usersRepository.Create(ctx, user)
 	if err != nil {
-		return RegisterOutput{}, fmt.Errorf("create user in repository: %w", err)
+		return AuthOutput{}, fmt.Errorf("create user in repository: %w", err)
 	}
 
 	token, err := s.jwtManager.Generate(createdUser.ID)
 	if err != nil {
-		return RegisterOutput{}, fmt.Errorf("generate jwt token: %w", err)
+		return AuthOutput{}, fmt.Errorf("generate jwt token: %w", err)
 	}
-	return RegisterOutput{
+	return AuthOutput{
 		User: createdUser,
 		Token: token,
 	}, nil

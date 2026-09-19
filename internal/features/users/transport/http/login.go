@@ -9,36 +9,35 @@ import (
 	users_service "github.com/vadim1100/todo_app/internal/features/users/service"
 )
 
-type RegisterRequest struct {
+type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-type RegisterResponse struct{
+type LoginResponse struct {
 	User UserResponse `json:"user"`
 	Token string `json:"token"`
 }
 
-func (h *UsersHTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *UsersHTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, w)
-	var request RegisterRequest
+	var request LoginRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		responseHandler.ErrorResponse(err, "failed to decode register http request")
+		responseHandler.ErrorResponse(err, "failed to decode login http request")
 		return
 	}
 
 	input := users_service.NewAuthInput(request.Username, request.Password)
-	output, err := h.usersService.Register(ctx, input)
-
+	output, err := h.usersService.Login(ctx, input)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to create user")
+		responseHandler.ErrorResponse(err, "failed to login")
 		return
 	}
-
-	response := RegisterResponse{
+	
+	response := LoginResponse{
 		User: UserResponse{
 			ID: output.User.ID,
 			Username: output.User.Username,
@@ -46,5 +45,5 @@ func (h *UsersHTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Token: output.Token,
 	}
 
-	responseHandler.JSONResponse(response, http.StatusCreated)
+	responseHandler.JSONResponse(response, http.StatusOK)
 }

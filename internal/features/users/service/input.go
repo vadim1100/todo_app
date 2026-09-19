@@ -1,12 +1,12 @@
 package users_service
 
-type RegisterInput struct{
+type AuthInput struct{
 	Username string
 	Password string
 }
 
-func NewRegisterInput(username string, password string) RegisterInput{
-	return RegisterInput{
+func NewAuthInput(username string, password string) AuthInput{
+	return AuthInput{
 		Username: username,
 		Password: password,
 	}
