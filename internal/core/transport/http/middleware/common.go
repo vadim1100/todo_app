@@ -3,15 +3,23 @@ package core_http_middleware
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	core_errors "github.com/vadim1100/todo_app/internal/core/errors"
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
+	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 	"go.uber.org/zap"
 )
 
 const requestIDHeader = "X-Request-ID"
+const authorizationHeader = "Authorization"
+
+type authKey struct{}
+
+var userIDKey authKey
 
 func RequestID() Middleware {
 	return func(next http.Handler) http.Handler {
@@ -90,4 +98,49 @@ func Trace() Middleware {
 			)
 		})
 	}
+}
+
+func Auth(jwtManager *core_service_jwt.Manager) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get(authorizationHeader)
+			logger := core_logger.FromContext(r.Context())
+			responseHandler := core_http_response.NewHTTPResponseHandler(logger, w)
+
+			if authHeader == "" {
+				responseHandler.ErrorResponse(
+					core_errors.ErrUnauthorized,
+					"missing authorization header",
+				)
+				return
+			}
+
+			scheme, token, ok := strings.Cut(authHeader, " ")
+			if !ok || scheme != "Bearer" || token == "" {
+				responseHandler.ErrorResponse(
+					core_errors.ErrUnauthorized,
+					"invalid authorization header",
+				)
+				return 
+			}
+
+			claims, err := jwtManager.Parse(token)
+			if err != nil {
+				responseHandler.ErrorResponse(
+					core_errors.ErrUnauthorized,
+					"invalid token",
+				)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userIDKey, claims.UserID)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func UserIDFromContext(ctx context.Context) (int, bool) {
+	id, ok := ctx.Value(userIDKey).(int)
+	return id, ok
 }

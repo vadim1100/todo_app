@@ -28,3 +28,22 @@ func (r *UsersRepository) GetByUsername(ctx context.Context, username string) (c
 	
 	return user, nil
 }
+
+func (r *UsersRepository) GetByID(ctx context.Context, id int) (core_domain.User, error) {
+	query := `
+	SELECT id, version, username, password_hash FROM todoapp.users
+	WHERE id = $1
+	`
+
+	var user core_domain.User
+
+	row := r.pool.QueryRow(ctx, query, id)
+	if err := row.Scan(&user.ID, &user.Version, &user.Username, &user.PasswordHash); err != nil{
+		if errors.Is(err, pgx.ErrNoRows) {
+			return core_domain.User{}, core_errors.ErrNotFound
+		}
+		return core_domain.User{}, fmt.Errorf("get user by id: %w", err)
+	}
+	
+	return user, nil
+}

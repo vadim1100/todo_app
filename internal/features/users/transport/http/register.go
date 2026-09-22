@@ -34,17 +34,21 @@ func (h *UsersHTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	output, err := h.usersService.Register(ctx, input)
 
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to create user")
+		responseHandler.ErrorResponse(err, "failed to register user")
 		return
 	}
 
-	response := RegisterResponse{
-		User: UserResponse{
-			ID: output.User.ID,
-			Username: output.User.Username,
-		},
-		Token: output.Token,
-	}
+	response := NewRegisterResponse(
+		NewUserResponse(output.User.ID, output.User.Username),
+		output.Token,
+	)
 
 	responseHandler.JSONResponse(response, http.StatusCreated)
+}
+
+func NewRegisterResponse(user UserResponse, token string) RegisterResponse {
+	return RegisterResponse{
+		User: user,
+		Token: token,
+	}
 }

@@ -15,8 +15,26 @@ type UsersService struct {
 }
 
 type UsersRepository interface{
-	Create(ctx context.Context, user core_domain.User) (core_domain.User, error)
-	GetByUsername(ctx context.Context, username string) (core_domain.User, error)
+	Create(
+		ctx context.Context,
+		user core_domain.User,
+	) (core_domain.User, error)
+	GetByUsername(
+		ctx context.Context,
+		username string,
+	) (core_domain.User, error)
+	GetByID(
+		ctx context.Context,
+		id int,
+	) (core_domain.User, error)
+	DeleteByID(
+		ctx context.Context,
+		id int,
+	) error
+	Update(
+		ctx context.Context,
+		user core_domain.User,
+	) (core_domain.User, error)
 }
 
 func NewUsersService(
