@@ -37,5 +37,5 @@ func (s *UsersService) PatchMe(ctx context.Context, id int, input PatchInput) (c
 		return core_domain.User{}, err
 	}
 
-	return updatedUser, err
+	return updatedUser, nil
 }
