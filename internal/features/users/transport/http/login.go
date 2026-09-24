@@ -37,13 +37,17 @@ func (h *UsersHTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	response := LoginResponse{
-		User: UserResponse{
-			ID: output.User.ID,
-			Username: output.User.Username,
-		},
-		Token: output.Token,
-	}
+	response := NewLoginResponse(
+		NewUserResponse(output.User.ID, output.User.Username),
+		output.Token,
+	)
 
 	responseHandler.JSONResponse(response, http.StatusOK)
+}
+
+func NewLoginResponse(user UserResponse, token string) LoginResponse {
+	return LoginResponse{
+		User: user,
+		Token: token,
+	}
 }

@@ -8,3 +8,10 @@ type AuthOutput struct {
 	User core_domain.User
 	Token string
 }
+
+func NewAuthOutput(user core_domain.User, token string) AuthOutput{
+	return AuthOutput{
+		User: user,
+		Token: token,
+	}
+}

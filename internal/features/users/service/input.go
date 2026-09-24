@@ -11,3 +11,15 @@ func NewAuthInput(username string, password string) AuthInput{
 		Password: password,
 	}
 }
+
+type PatchInput struct {
+	Username *string
+	Password *string
+}
+
+func NewPatchInput(username *string, password *string) PatchInput {
+	return PatchInput{
+		Username: username,
+		Password: password,
+	}
+}

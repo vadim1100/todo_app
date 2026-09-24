@@ -70,7 +70,7 @@ func main() {
 		core_http_middleware.Panic(),
 	)
 
-	httpRouter := core_http_server.NewRouter()
+	httpRouter := core_http_server.NewRouter(core_http_middleware.Auth(jwtManager))
 	httpRouter.RegisterRoutes(usersRoutes...)
 	httpServer.RegisterRouters(httpRouter)
 
