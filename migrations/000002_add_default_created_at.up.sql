@@ -1,0 +1,1 @@
+ALTER TABLE todoapp.tasks ALTER COLUMN created_at SET DEFAULT NOW();
