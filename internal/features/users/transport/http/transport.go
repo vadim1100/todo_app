@@ -16,11 +16,11 @@ type UsersHTTPHandler struct {
 type UsersService interface{
 	Register(
 		ctx context.Context,
-		in users_service.AuthInput,
+		input users_service.AuthInput,
 	) (users_service.AuthOutput, error)
 	Login(
 		ctx context.Context,
-		in users_service.AuthInput,
+		input users_service.AuthInput,
 	) (users_service.AuthOutput, error)
 	GetMe(
 		ctx context.Context,

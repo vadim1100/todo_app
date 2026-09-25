@@ -13,7 +13,10 @@ import (
 	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 	core_http_middleware "github.com/vadim1100/todo_app/internal/core/transport/http/middleware"
 	core_http_server "github.com/vadim1100/todo_app/internal/core/transport/http/server"
-	users_repository "github.com/vadim1100/todo_app/internal/features/users/repository/postgres"
+	tasks_postgres_repository "github.com/vadim1100/todo_app/internal/features/tasks/repository/postgres"
+	tasks_service "github.com/vadim1100/todo_app/internal/features/tasks/service"
+	tasks_http_transport "github.com/vadim1100/todo_app/internal/features/tasks/transport"
+	users_postgres_repository "github.com/vadim1100/todo_app/internal/features/users/repository/postgres"
 	users_service "github.com/vadim1100/todo_app/internal/features/users/service"
 	users_transport_http "github.com/vadim1100/todo_app/internal/features/users/transport/http"
 	"go.uber.org/zap"
@@ -52,13 +55,22 @@ func main() {
 
 	jwtManager := core_service_jwt.NewManager(jwtConfig.JWTSecret, jwtConfig.JWTTTL)
 
-	usersRepo := users_repository.NewUsersRepository(pool)
+	usersRepo := users_postgres_repository.NewUsersRepository(pool)
 
 	usersService := users_service.NewUsersService(usersRepo, hasher, jwtManager)
 
 	usersHandler := users_transport_http.NewUsersHTTPHandler(usersService)
 
 	usersRoutes := usersHandler.Routes()
+
+
+	tasksRepo := tasks_postgres_repository.NewTasksRepository(pool)
+
+	tasksService := tasks_service.NewTasksService(tasksRepo)
+
+	tasksTransport := tasks_http_transport.NewTasksHandler(tasksService)
+
+	tasksRoutes := tasksTransport.Routes()
 
 	logger.Debug("initializing http server")
 	httpServer := core_http_server.NewHTTPServer(
@@ -72,6 +84,7 @@ func main() {
 
 	httpRouter := core_http_server.NewRouter(core_http_middleware.Auth(jwtManager))
 	httpRouter.RegisterRoutes(usersRoutes...)
+	httpRouter.RegisterRoutes(tasksRoutes...)
 	httpServer.RegisterRouters(httpRouter)
 
 	if err := httpServer.Run(ctx); err != nil {

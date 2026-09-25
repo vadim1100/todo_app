@@ -40,7 +40,8 @@ func (s *UsersService) Register(ctx context.Context, input AuthInput) (AuthOutpu
 }
 
 func validateUsername(username string) error {
-    if len(username) < 1 || len(username) > 100 {
+	usernameLen := len([]rune(username))
+    if usernameLen < 1 || usernameLen > 100 {
         return fmt.Errorf("%w: username must be 1-100 characters", core_errors.ErrInvalidArgument)
     }
     return nil
