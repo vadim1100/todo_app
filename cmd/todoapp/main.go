@@ -15,7 +15,7 @@ import (
 	core_http_server "github.com/vadim1100/todo_app/internal/core/transport/http/server"
 	tasks_postgres_repository "github.com/vadim1100/todo_app/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/vadim1100/todo_app/internal/features/tasks/service"
-	tasks_http_transport "github.com/vadim1100/todo_app/internal/features/tasks/transport"
+	tasks_http_transport "github.com/vadim1100/todo_app/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/vadim1100/todo_app/internal/features/users/repository/postgres"
 	users_service "github.com/vadim1100/todo_app/internal/features/users/service"
 	users_transport_http "github.com/vadim1100/todo_app/internal/features/users/transport/http"

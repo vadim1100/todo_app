@@ -7,7 +7,10 @@ import (
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
 )
 
-func (r *TasksRepository) Create(ctx context.Context, task core_domain.Task) (core_domain.Task, error) {
+func (r *TasksRepository) Create(
+	ctx context.Context,
+	task core_domain.Task,
+) (core_domain.Task, error) {
 	query := `
 	INSERT INTO todoapp.tasks (user_id, title, description, completed)
 	VALUES ($1, $2, $3, $4)

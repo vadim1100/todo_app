@@ -19,6 +19,26 @@ type TasksService interface{
 		userID int,
 		input tasks_service.CreateTaskInput,
 	) (core_domain.Task, error)
+	GetByTaskID(
+		ctx context.Context,
+		taskID int,
+		userID int,
+	) (core_domain.Task, error)
+	ListByUser(
+		ctx context.Context,
+		userID int,
+	) ([]core_domain.Task, error)
+	DeleteByTaskID(
+		ctx context.Context,
+		taskID int,
+		userID int,
+	) error
+	Update(
+		ctx context.Context,
+		taskID int,
+		userID int,
+		input tasks_service.UpdateTaskInput,
+	) (core_domain.Task, error)
 }
 
 func NewTasksHandler(tasksService TasksService) *TasksHTTPHandler {
@@ -33,6 +53,30 @@ func (h *TasksHTTPHandler) Routes() []core_http_server.Route {
 			Method: http.MethodPost,
 			Path: "/tasks",
 			Handler: h.Create,
+			Protected: true,
+		},
+		{
+			Method: http.MethodGet,
+			Path: "/tasks/{id}",
+			Handler: h.GetByTaskID,
+			Protected: true,
+		},
+		{
+			Method: http.MethodGet,
+			Path: "/tasks",
+			Handler: h.List,
+			Protected: true,
+		},
+		{
+			Method: http.MethodDelete,
+			Path: "/tasks/{id}",
+			Handler: h.DeleteByTaskID,
+			Protected: true,
+		},
+		{
+			Method: http.MethodPatch,
+			Path: "/tasks/{id}",
+			Handler: h.Update,
 			Protected: true,
 		},
 	}
