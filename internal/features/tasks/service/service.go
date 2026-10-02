@@ -15,6 +15,24 @@ type TasksRepository interface{
 		ctx context.Context,
 		task core_domain.Task,
 	) (core_domain.Task, error)
+	GetByTaskID(
+		ctx context.Context,
+		taskID int,
+		userID int,
+	) (core_domain.Task, error)
+	ListByUser(
+		ctx context.Context,
+		userID int,
+	) ([]core_domain.Task, error)
+	DeleteByTaskID(
+		ctx context.Context,
+		taskID int,
+		userID int,
+	) error
+	Update(
+		ctx context.Context,
+		task core_domain.Task,
+	) (core_domain.Task, error)
 }
 
 func NewTasksService(tasksRepository TasksRepository) *TasksService {
