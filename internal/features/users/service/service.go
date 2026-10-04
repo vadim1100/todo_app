@@ -4,6 +4,7 @@ import (
 	"context"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_service_blacklist "github.com/vadim1100/todo_app/internal/core/service/blacklist"
 	core_service_hash "github.com/vadim1100/todo_app/internal/core/service/hash"
 	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 )
@@ -12,6 +13,7 @@ type UsersService struct {
 	usersRepository UsersRepository
 	hasher core_service_hash.Hasher
 	jwtManager *core_service_jwt.Manager
+	blacklist core_service_blacklist.Blacklist
 }
 
 type UsersRepository interface{
@@ -41,10 +43,12 @@ func NewUsersService(
 	usersRepository UsersRepository,
 	hasher core_service_hash.Hasher,
 	jwtManager *core_service_jwt.Manager,
+	blacklist core_service_blacklist.Blacklist,
 ) *UsersService{
 	return &UsersService{
 		usersRepository: usersRepository,
 		hasher: hasher,
 		jwtManager: jwtManager,
+		blacklist: blacklist,
 	}
 }

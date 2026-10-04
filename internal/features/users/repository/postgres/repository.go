@@ -1,7 +1,7 @@
 package users_postgres_repository
 
 import (
-	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/pool"
+	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/postgres/pool"
 )
 
 type UsersRepository struct {

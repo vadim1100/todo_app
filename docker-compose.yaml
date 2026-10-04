@@ -17,5 +17,16 @@ services:
     volumes:
       - ${PROJECT_ROOT}/migrations:/migrations
 
+  todoapp-redis:
+    image: redis:8-alpine
+    container_name: todoapp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+
 volumes:
   pg_data:
+  redis_data:

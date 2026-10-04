@@ -35,6 +35,10 @@ type UsersService interface{
 		id int,
 		input users_service.PatchInput,
 	) (core_domain.User, error)
+	Logout(
+		ctx context.Context,
+		token string,
+	) error
 }
 
 func NewUsersHTTPHandler(
@@ -73,6 +77,12 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method: http.MethodPatch,
 			Path: "/users/me",
 			Handler: h.PatchMe,
+			Protected: true,
+		},
+		{
+			Method: http.MethodPost,
+			Path: "/users/logout",
+			Handler: h.Logout,
 			Protected: true,
 		},
 	}

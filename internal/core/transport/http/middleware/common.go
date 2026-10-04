@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	core_errors "github.com/vadim1100/todo_app/internal/core/errors"
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
+	core_service_blacklist "github.com/vadim1100/todo_app/internal/core/service/blacklist"
 	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 	"go.uber.org/zap"
@@ -17,9 +18,8 @@ import (
 const requestIDHeader = "X-Request-ID"
 const authorizationHeader = "Authorization"
 
-type authKey struct{}
-
-var userIDKey authKey
+type userIDKey struct{}
+type tokenKey struct{}
 
 func RequestID() Middleware {
 	return func(next http.Handler) http.Handler {
@@ -100,7 +100,7 @@ func Trace() Middleware {
 	}
 }
 
-func Auth(jwtManager *core_service_jwt.Manager) Middleware {
+func Auth(jwtManager *core_service_jwt.Manager, blacklist core_service_blacklist.Blacklist) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get(authorizationHeader)
@@ -133,14 +133,29 @@ func Auth(jwtManager *core_service_jwt.Manager) Middleware {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), userIDKey, claims.UserID)
+			isBlacklisted, err := blacklist.Contains(r.Context(), token)
+			if err != nil {
+				responseHandler.ErrorResponse(err, "blacklist check failed")
+				return 
+			}
+			if isBlacklisted {
+				responseHandler.ErrorResponse(core_errors.ErrUnauthorized, "token revoked")
+				return
+			}
 
+			ctx := context.WithValue(r.Context(), userIDKey{}, claims.UserID)
+			ctx = context.WithValue(ctx, tokenKey{}, token)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 func UserIDFromContext(ctx context.Context) (int, bool) {
-	id, ok := ctx.Value(userIDKey).(int)
+	id, ok := ctx.Value(userIDKey{}).(int)
 	return id, ok
+}
+
+func TokenFromContext(ctx context.Context) (string, bool) {
+	token, ok := ctx.Value(tokenKey{}).(string)
+	return token, ok
 }
