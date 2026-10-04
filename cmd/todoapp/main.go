@@ -8,7 +8,9 @@ import (
 	"syscall"
 
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
-	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/pool"
+	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/postgres/pool"
+	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
+	core_redis_pool "github.com/vadim1100/todo_app/internal/core/repository/redis/pool"
 	core_service_hash "github.com/vadim1100/todo_app/internal/core/service/hash"
 	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 	core_http_middleware "github.com/vadim1100/todo_app/internal/core/transport/http/middleware"
@@ -27,13 +29,15 @@ func main() {
 	logger, err := core_logger.NewLogger(logConfig)
 
 	if err != nil {
-		fmt.Println("failed to make logger: %w", err)
+		fmt.Println("failed to make logger:", err)
 		os.Exit(1)
 	}
 
 	serverConfig := core_http_server.NewConfigMust()
 
 	postgresConfig := core_postgres_pool.NewConfigMust()
+
+	redisConfig := core_redis_pool.NewConfigMust()
 
 	jwtConfig := core_service_jwt.NewConfigMust()
 
@@ -51,13 +55,21 @@ func main() {
 	}
 	defer pool.Close()
 
+	redisClient, err := core_redis_pool.NewClient(ctx, redisConfig)
+	if err != nil {
+		logger.Fatal("failed to connect to redis", zap.Error(err))
+	}
+	defer redisClient.Close()
+
 	hasher := core_service_hash.NewBCryptHasher(5)
 
 	jwtManager := core_service_jwt.NewManager(jwtConfig.JWTSecret, jwtConfig.JWTTTL)
 
+	blacklist := core_redis.NewBlacklist(redisClient)
+
 	usersRepo := users_postgres_repository.NewUsersRepository(pool)
 
-	usersService := users_service.NewUsersService(usersRepo, hasher, jwtManager)
+	usersService := users_service.NewUsersService(usersRepo, hasher, jwtManager, blacklist)
 
 	usersHandler := users_transport_http.NewUsersHTTPHandler(usersService)
 
@@ -82,7 +94,7 @@ func main() {
 		core_http_middleware.Panic(),
 	)
 
-	httpRouter := core_http_server.NewRouter(core_http_middleware.Auth(jwtManager))
+	httpRouter := core_http_server.NewRouter(core_http_middleware.Auth(jwtManager, blacklist))
 	httpRouter.RegisterRoutes(usersRoutes...)
 	httpRouter.RegisterRoutes(tasksRoutes...)
 	httpServer.RegisterRouters(httpRouter)

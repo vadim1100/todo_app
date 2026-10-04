@@ -9,6 +9,12 @@ pg-up:
 pg-down:
 	@docker compose down todoapp-postgres
 
+redis-up:
+	@docker compose up -d todoapp-redis
+
+redis-down:
+	@docker compose down todoapp-redis
+
 volume-clean:
 	@read -p "Очистить все volume файлы pgdata? [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
