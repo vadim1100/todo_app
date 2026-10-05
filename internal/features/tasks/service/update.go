@@ -6,6 +6,7 @@ import (
 	"time"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
 )
 
 func (s *TasksService) Update(
@@ -49,6 +50,12 @@ func (s *TasksService) Update(
 	if err != nil {
 		return core_domain.Task{}, fmt.Errorf("update task in repository: %w", err)
 	}
+
+	_ = s.cache.Delete(
+		ctx,
+		core_redis.NewTasksListKey(updatedTask.UserID),
+		core_redis.NewTaskItemKey(updatedTask.ID),
+	)
 	
 	return updatedTask, nil
 }

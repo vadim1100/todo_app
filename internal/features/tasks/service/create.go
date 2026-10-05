@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
 )
 
 func (s *TasksService) Create(
@@ -25,5 +26,11 @@ func (s *TasksService) Create(
 	if err != nil {
 		return core_domain.Task{}, fmt.Errorf("create task in repository: %w", err)
 	}
+
+	_ = s.cache.Delete(
+		ctx,
+		core_redis.NewTasksListKey(createdTask.UserID),
+	)
+
 	return createdTask, nil
 }
