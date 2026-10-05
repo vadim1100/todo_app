@@ -8,8 +8,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const blacklistPrefix = "blacklist:"
-
 type Blacklist struct {
 	client *redis.Client
 }
@@ -21,7 +19,7 @@ func NewBlacklist(client *redis.Client) *Blacklist {
 }
 
 func (b *Blacklist) Add(ctx context.Context, token string, ttl time.Duration) error {
-	key := blacklistPrefix + token
+	key := NewBlacklistKey(token)
 	if err := b.client.Set(ctx, key, "1", ttl).Err(); err != nil {
 		return fmt.Errorf("add to blacklist: %w", err)
 	}
@@ -29,7 +27,7 @@ func (b *Blacklist) Add(ctx context.Context, token string, ttl time.Duration) er
 }
 
 func (b *Blacklist) Contains(ctx context.Context, token string) (bool, error) {
-	key := blacklistPrefix + token
+	key := NewBlacklistKey(token)
 	n, err := b.client.Exists(ctx, key).Result()
 	if err != nil {
 		return false, fmt.Errorf("check blacklist: %w", err)

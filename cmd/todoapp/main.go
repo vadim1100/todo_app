@@ -67,6 +67,8 @@ func main() {
 
 	blacklist := core_redis.NewBlacklist(redisClient)
 
+	cache := core_redis.NewCache(redisClient)
+
 	usersRepo := users_postgres_repository.NewUsersRepository(pool)
 
 	usersService := users_service.NewUsersService(usersRepo, hasher, jwtManager, blacklist)
@@ -78,7 +80,7 @@ func main() {
 
 	tasksRepo := tasks_postgres_repository.NewTasksRepository(pool)
 
-	tasksService := tasks_service.NewTasksService(tasksRepo)
+	tasksService := tasks_service.NewTasksService(tasksRepo, cache)
 
 	tasksTransport := tasks_http_transport.NewTasksHandler(tasksService)
 
