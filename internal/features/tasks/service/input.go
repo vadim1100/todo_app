@@ -1,7 +1,7 @@
 package tasks_service
 
 type CreateTaskInput struct {
-	Title string
+	Title       string
 	Description *string
 }
 
@@ -10,25 +10,25 @@ func NewCreateTaskInput(
 	description *string,
 ) CreateTaskInput {
 	return CreateTaskInput{
-		Title: title,
+		Title:       title,
 		Description: description,
 	}
 }
 
 type UpdateTaskInput struct {
-	Title *string
+	Title       *string
 	Description *string
-	Completed *bool
+	Completed   *bool
 }
 
 func NewUpdateTaskInput(
 	title *string,
 	description *string,
 	completed *bool,
-) UpdateTaskInput{
+) UpdateTaskInput {
 	return UpdateTaskInput{
-		Title: title,
+		Title:       title,
 		Description: description,
-		Completed: completed,
+		Completed:   completed,
 	}
 }
