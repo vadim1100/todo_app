@@ -3,9 +3,11 @@ package tasks_service
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_kafka "github.com/vadim1100/todo_app/internal/core/repository/kafka"
 	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
 )
 
@@ -36,11 +38,11 @@ func (s *TasksService) Update(
 
 	if input.Completed != nil {
 		if *input.Completed && !task.Completed {
-			timeNow := time.Now()
+			timeNow := time.Now().UTC()
 			task.CompletedAt = &timeNow
 		}
-		
-		if !*input.Completed && task.Completed{
+
+		if !*input.Completed && task.Completed {
 			task.CompletedAt = nil
 		}
 		task.Completed = *input.Completed
@@ -56,6 +58,13 @@ func (s *TasksService) Update(
 		core_redis.NewTasksListKey(updatedTask.UserID),
 		core_redis.NewTaskItemKey(updatedTask.ID),
 	)
-	
+
+	_ = s.producer.Produce(ctx, strconv.Itoa(updatedTask.UserID), core_kafka.NewTaskEvent(
+		core_kafka.EventTaskUpdated,
+		updatedTask.UserID,
+		updatedTask.ID,
+		time.Now().UTC(),
+	))
+
 	return updatedTask, nil
 }

@@ -3,8 +3,11 @@ package tasks_service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_kafka "github.com/vadim1100/todo_app/internal/core/repository/kafka"
 	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
 )
 
@@ -12,11 +15,11 @@ func (s *TasksService) Create(
 	ctx context.Context,
 	userID int,
 	input CreateTaskInput,
-	) (core_domain.Task, error) {
+) (core_domain.Task, error) {
 	if err := validateTitle(input.Title); err != nil {
 		return core_domain.Task{}, err
 	}
-	if err := validateDescription(input.Description); err != nil{
+	if err := validateDescription(input.Description); err != nil {
 		return core_domain.Task{}, err
 	}
 
@@ -31,6 +34,13 @@ func (s *TasksService) Create(
 		ctx,
 		core_redis.NewTasksListKey(createdTask.UserID),
 	)
+
+	_ = s.producer.Produce(ctx, strconv.Itoa(userID), core_kafka.NewTaskEvent(
+		core_kafka.EventTaskCreated,
+		userID,
+		createdTask.ID,
+		time.Now().UTC(),
+	))
 
 	return createdTask, nil
 }

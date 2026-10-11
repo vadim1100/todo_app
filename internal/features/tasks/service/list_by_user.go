@@ -11,9 +11,9 @@ import (
 func (s *TasksService) ListByUser(
 	ctx context.Context,
 	userID int,
-) ([]core_domain.Task, error){
+) ([]core_domain.Task, error) {
 	key := core_redis.NewTasksListKey(userID)
-	
+
 	if raw, err := s.cache.Get(ctx, key); err == nil {
 		var tasks []core_domain.Task
 		if err := json.Unmarshal(raw, &tasks); err == nil {

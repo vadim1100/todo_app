@@ -15,6 +15,21 @@ redis-up:
 redis-down:
 	@docker compose down todoapp-redis
 
+kafka-up:
+	@docker compose up -d todoapp-kafka todoapp-kafka-ui
+
+kafka-down:
+	@docker compose down todoapp-kafka todoapp-kafka-ui
+
+docker-up:
+	@docker compose up -d
+
+docker-down:
+	@docker compose down
+
+docker-build:
+	@docker compose up -d --build todoapp
+
 volume-clean:
 	@read -p "Очистить все volume файлы pgdata? [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \

@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
+	core_kafka "github.com/vadim1100/todo_app/internal/core/repository/kafka"
 	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/postgres/pool"
 	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
 	core_redis_pool "github.com/vadim1100/todo_app/internal/core/repository/redis/pool"
@@ -15,6 +16,7 @@ import (
 	core_service_jwt "github.com/vadim1100/todo_app/internal/core/service/jwt"
 	core_http_middleware "github.com/vadim1100/todo_app/internal/core/transport/http/middleware"
 	core_http_server "github.com/vadim1100/todo_app/internal/core/transport/http/server"
+	audit_postgres_repository "github.com/vadim1100/todo_app/internal/features/audit/repository/postgres"
 	tasks_postgres_repository "github.com/vadim1100/todo_app/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/vadim1100/todo_app/internal/features/tasks/service"
 	tasks_http_transport "github.com/vadim1100/todo_app/internal/features/tasks/transport/http"
@@ -41,6 +43,11 @@ func main() {
 
 	jwtConfig := core_service_jwt.NewConfigMust()
 
+	kafkaConfig := core_kafka.NewConfigMust()
+
+	kafkaProducer := core_kafka.NewProducer(kafkaConfig.Brokers, kafkaConfig.Topic)
+	defer kafkaProducer.Close()
+
 	ctx, ctxCancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT, syscall.SIGTERM,
@@ -61,6 +68,16 @@ func main() {
 	}
 	defer redisClient.Close()
 
+	auditRepo := audit_postgres_repository.NewAuditRepository(pool)
+	auditConsumer := core_kafka.NewAuditConsumer(
+		kafkaConfig.Brokers,
+		kafkaConfig.Topic,
+		kafkaConfig.GroupID,
+		auditRepo,
+		logger,
+	)
+	go auditConsumer.Run(ctx)
+
 	hasher := core_service_hash.NewBCryptHasher(5)
 
 	jwtManager := core_service_jwt.NewManager(jwtConfig.JWTSecret, jwtConfig.JWTTTL)
@@ -80,7 +97,7 @@ func main() {
 
 	tasksRepo := tasks_postgres_repository.NewTasksRepository(pool)
 
-	tasksService := tasks_service.NewTasksService(tasksRepo, cache)
+	tasksService := tasks_service.NewTasksService(tasksRepo, cache, kafkaProducer)
 
 	tasksTransport := tasks_http_transport.NewTasksHandler(tasksService)
 

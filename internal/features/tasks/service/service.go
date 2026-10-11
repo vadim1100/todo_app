@@ -9,10 +9,11 @@ import (
 
 type TasksService struct {
 	tasksRepository TasksRepository
-	cache Cache
+	cache           Cache
+	producer        EventProducer
 }
 
-type TasksRepository interface{
+type TasksRepository interface {
 	Create(
 		ctx context.Context,
 		task core_domain.Task,
@@ -43,9 +44,14 @@ type Cache interface {
 	Delete(ctx context.Context, keys ...string) error
 }
 
-func NewTasksService(tasksRepository TasksRepository, cache Cache) *TasksService {
+type EventProducer interface {
+	Produce(ctx context.Context, key string, event any) error
+}
+
+func NewTasksService(tasksRepository TasksRepository, cache Cache, producer EventProducer) *TasksService {
 	return &TasksService{
 		tasksRepository: tasksRepository,
-		cache: cache,
+		cache:           cache,
+		producer:        producer,
 	}
 }
