@@ -10,6 +10,8 @@ services:
       POSTGRES_HOST: todoapp-postgres
       POSTGRES_PORT: 5432
       REDIS_ADDR: todoapp-redis:6379
+    volumes:
+      - ./out/logs:/app/out/logs
     depends_on:
       - todoapp-kafka
       - todoapp-postgres

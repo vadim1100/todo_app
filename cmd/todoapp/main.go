@@ -97,7 +97,7 @@ func main() {
 
 	tasksRepo := tasks_postgres_repository.NewTasksRepository(pool)
 
-	tasksService := tasks_service.NewTasksService(tasksRepo, cache, kafkaProducer)
+	tasksService := tasks_service.NewTasksService(tasksRepo, cache, kafkaProducer, logger)
 
 	tasksTransport := tasks_http_transport.NewTasksHandler(tasksService)
 

@@ -29,7 +29,7 @@ func TestListByUser_CacheHit(t *testing.T) {
 
 	cache.On("Get", ctx, mock.Anything).Return(cachedJSON, nil).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	got, err := svc.ListByUser(ctx, userID)
@@ -64,7 +64,7 @@ func TestListByUser_CacheMiss(t *testing.T) {
 
 	cache.On("Set", ctx, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	got, err := svc.ListByUser(ctx, userID)
@@ -90,7 +90,7 @@ func TestListByUser_RepoError(t *testing.T) {
 	cache.On("Get", ctx, mock.Anything).Return(nil, errors.New("cache miss")).Once()
 	repo.On("ListByUser", ctx, userID).Return(nil, repoErr).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	_, err := svc.ListByUser(ctx, userID)

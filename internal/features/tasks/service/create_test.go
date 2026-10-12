@@ -31,7 +31,7 @@ func TestCreate_OK(t *testing.T) {
 	cache.On("Delete", ctx, mock.Anything).Return(nil).Once()
 	producer.On("Produce", ctx, "1", mock.Anything).Return(nil).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 	
 	got, err := svc.Create(ctx, userID, input)
@@ -54,7 +54,7 @@ func TestCreate_EmptyTitle_ReturnsError(t *testing.T) {
 	cache := new(mockCache)
 	producer := new(mockProducer)
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	_, err := svc.Create(ctx, 1, input)
@@ -79,7 +79,7 @@ func TestCreate_RepoError_ReturnsError(t *testing.T) {
 
 	repo.On("Create", ctx, mock.Anything).Return(core_domain.Task{}, repoErr).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	_, err := svc.Create(ctx, 1, input)
@@ -109,7 +109,7 @@ func TestCreate_ProducerError_TaskStillCreated(t *testing.T) {
 	cache.On("Delete", ctx, mock.Anything).Return(nil).Once()
 	producer.On("Produce", ctx, "1", mock.Anything).Return(producerErr).Once()
 
-	svc := tasks_service.NewTasksService(repo, cache, producer)
+	svc := tasks_service.NewTasksService(repo, cache, producer, testLogger())
 
 
 	got, err := svc.Create(ctx, userID, input)

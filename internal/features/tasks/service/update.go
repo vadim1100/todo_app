@@ -9,6 +9,7 @@ import (
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
 	core_kafka "github.com/vadim1100/todo_app/internal/core/repository/kafka"
 	core_redis "github.com/vadim1100/todo_app/internal/core/repository/redis"
+	"go.uber.org/zap"
 )
 
 func (s *TasksService) Update(
@@ -53,18 +54,38 @@ func (s *TasksService) Update(
 		return core_domain.Task{}, fmt.Errorf("update task in repository: %w", err)
 	}
 
-	_ = s.cache.Delete(
+	if err := s.cache.Delete(
 		ctx,
 		core_redis.NewTasksListKey(updatedTask.UserID),
 		core_redis.NewTaskItemKey(updatedTask.ID),
-	)
+	); err != nil {
+		s.logger.Warn("failed to invalidate task cache",
+			zap.Int("user_id", updatedTask.UserID),
+			zap.Int("task_id", updatedTask.ID),
+			zap.Error(err),
+		)
+	} else {
+		s.logger.Debug("task cache invalidated",
+			zap.Int("user_id", updatedTask.UserID),
+			zap.Int("task_id", updatedTask.ID),
+		)
+	}
 
-	_ = s.producer.Produce(ctx, strconv.Itoa(updatedTask.UserID), core_kafka.NewTaskEvent(
+	if err := s.producer.Produce(ctx, strconv.Itoa(updatedTask.UserID), core_kafka.NewTaskEvent(
 		core_kafka.EventTaskUpdated,
 		updatedTask.UserID,
 		updatedTask.ID,
 		time.Now().UTC(),
-	))
+	)); err != nil {
+		s.logger.Warn("failed to produce task_updated event",
+			zap.Int("task_id", updatedTask.ID),
+			zap.Error(err),
+		)
+	} else {
+		s.logger.Debug("task_updated event produced",
+			zap.Int("task_id", updatedTask.ID),
+		)
+	}
 
 	return updatedTask, nil
 }

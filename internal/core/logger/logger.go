@@ -22,7 +22,7 @@ var LogKey LoggerKey
 
 func FromContext(ctx context.Context) *Logger {
 	log, ok := ctx.Value(LogKey).(*Logger)
-	
+
 	if !ok {
 		panic("no logger in context")
 	}
@@ -47,7 +47,7 @@ func NewLogger(config Config) (*Logger, error) {
 		fmt.Sprintf("%s.log", timestamp),
 	)
 
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE | os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("open log file: %w", err)
 	}
@@ -66,19 +66,28 @@ func NewLogger(config Config) (*Logger, error) {
 
 	return &Logger{
 		Logger: zapLogger,
-		file: logFile,
+		file:   logFile,
 	}, nil
 }
 
-func (l *Logger) With(field ...zap.Field) *Logger{
+func (l *Logger) With(field ...zap.Field) *Logger {
 	return &Logger{
 		Logger: l.Logger.With(field...),
-		file: l.file,
+		file:   l.file,
 	}
 }
 
 func (l *Logger) Close() {
-	if err := l.file.Close(); err != nil {
-		fmt.Println("failed to close logger:", err)
+	if l.file != nil {
+		if err := l.file.Close(); err != nil {
+			fmt.Println("failed to close logger:", err)
+		}
+	}
+}
+
+func NewNop() *Logger {
+	return &Logger{
+		Logger: zap.NewNop(),
+		file:   nil,
 	}
 }

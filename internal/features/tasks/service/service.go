@@ -5,12 +5,14 @@ import (
 	"time"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
 )
 
 type TasksService struct {
 	tasksRepository TasksRepository
 	cache           Cache
 	producer        EventProducer
+	logger *core_logger.Logger
 }
 
 type TasksRepository interface {
@@ -48,10 +50,16 @@ type EventProducer interface {
 	Produce(ctx context.Context, key string, event any) error
 }
 
-func NewTasksService(tasksRepository TasksRepository, cache Cache, producer EventProducer) *TasksService {
+func NewTasksService(
+	tasksRepository TasksRepository,
+	cache Cache,
+	producer EventProducer,
+	logger *core_logger.Logger,
+) *TasksService {
 	return &TasksService{
 		tasksRepository: tasksRepository,
 		cache:           cache,
 		producer:        producer,
+		logger: logger,
 	}
 }

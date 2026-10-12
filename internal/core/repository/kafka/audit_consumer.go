@@ -98,6 +98,12 @@ func (c *AuditConsumer) Run(ctx context.Context) {
 			if err := c.client.CommitRecords(ctx, record); err != nil {
 				c.logger.Error("commit failed", zap.Error(err))
 			}
+
+			c.logger.Info("audit event saved",
+				zap.String("event", event.Event),
+				zap.Int("user_id", event.UserID),
+				zap.Int("task_id", event.TaskID),
+			)
 		}
 	}
 }

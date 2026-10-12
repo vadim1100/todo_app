@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	core_domain "github.com/vadim1100/todo_app/internal/core/domain"
+	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
 )
 
 type mockTasksRepo struct {
@@ -71,4 +72,8 @@ type mockProducer struct {
 func (m *mockProducer) Produce(ctx context.Context, key string, event any) error {
 	args := m.Called(ctx, key, event)
 	return args.Error(0)
+}
+
+func testLogger() *core_logger.Logger{
+	return core_logger.NewNop()
 }
