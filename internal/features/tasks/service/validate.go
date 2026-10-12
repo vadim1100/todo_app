@@ -2,15 +2,24 @@ package tasks_service
 
 import (
 	"fmt"
+	"strings"
 
 	core_errors "github.com/vadim1100/todo_app/internal/core/errors"
 )
 
 func validateTitle(title string) error {
-	titleLen := len([]rune(title))
-	if titleLen < 1 || titleLen > 100 {
+	trimmedTitle := strings.TrimSpace(title)
+	titleLen := len([]rune(trimmedTitle))
+
+	if len(trimmedTitle) == 0 {
 		return fmt.Errorf(
-			"%w: title must be 1-100 characters",
+			"%w: title is empty",
+			core_errors.ErrInvalidArgument,
+		)
+	}
+	if titleLen > 100 {
+		return fmt.Errorf(
+			"%w: title must be <100 characters",
 			core_errors.ErrInvalidArgument,
 		)
 	}
