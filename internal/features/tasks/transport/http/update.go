@@ -13,11 +13,25 @@ import (
 )
 
 type UpdateTaskRequest struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Completed   *bool   `json:"completed"`
+	Title       *string `json:"title,omitempty" example:"Измененный заголовок"`
+	Description *string `json:"description,omitempty"`
+	Completed   *bool   `json:"completed,omitempty" example:"true"`
 }
 
+// UpdateTask godoc
+// @Summary      Обновить задачу
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "ID задачи"
+// @Param        request body UpdateTaskRequest true "Тело"
+// @Success      200 {object} TaskResponse
+// @Failure      400 {object} ErrorResponse "невалидные данные"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "задача не найдена"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /tasks/{id} [patch]
 func (h *TasksHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

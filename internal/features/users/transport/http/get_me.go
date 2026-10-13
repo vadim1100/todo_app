@@ -9,6 +9,16 @@ import (
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 )
 
+// GetMe godoc
+// @Summary      Текущий пользователь
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} UserResponse
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "пользователь не найден"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/me [get]
 func (h *UsersHTTPHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	_ "github.com/vadim1100/todo_app/docs"
 	core_logger "github.com/vadim1100/todo_app/internal/core/logger"
 	core_kafka "github.com/vadim1100/todo_app/internal/core/repository/kafka"
 	core_postgres_pool "github.com/vadim1100/todo_app/internal/core/repository/postgres/pool"
@@ -26,6 +28,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title           Todo-List API
+// @version         1.0
+// @description     Todo-лист с JWT токенами, Redis-кэшем и Kafka (audit-log)
+// @host            localhost:5678
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in              header
+// @name            Authorization
+// @description     Введите "Bearer <token>"
 func main() {
 	logConfig := core_logger.NewConfigMust()
 	logger, err := core_logger.NewLogger(logConfig)
@@ -94,7 +105,6 @@ func main() {
 
 	usersRoutes := usersHandler.Routes()
 
-
 	tasksRepo := tasks_postgres_repository.NewTasksRepository(pool)
 
 	tasksService := tasks_service.NewTasksService(tasksRepo, cache, kafkaProducer, logger)
@@ -117,6 +127,10 @@ func main() {
 	httpRouter.RegisterRoutes(usersRoutes...)
 	httpRouter.RegisterRoutes(tasksRoutes...)
 	httpServer.RegisterRouters(httpRouter)
+
+	httpRouter.Handle("/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:5678/swagger/doc.json"),
+	))
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("http server run error", zap.Error(err))

@@ -16,6 +16,20 @@ type PatchRequest struct {
 	Password *string `json:"password"`
 }
 
+// PatchMe godoc
+// @Summary      Обновить профиль
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body PatchRequest true "Новые данные"
+// @Success      200 {object} UserResponse
+// @Failure      400 {object} ErrorResponse "невалидные данные"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "пользователь не найден"
+// @Failure      409 {object} ErrorResponse "username занят"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/me [patch]
 func (h *UsersHTTPHandler) PatchMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

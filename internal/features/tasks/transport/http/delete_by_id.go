@@ -10,6 +10,16 @@ import (
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 )
 
+// DeleteTask godoc
+// @Summary      Удалить задачу
+// @Tags         tasks
+// @Security     BearerAuth
+// @Param        id path int true "ID задачи"
+// @Success      204  "успешно удалено"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "задача не найдена"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /tasks/{id} [delete]
 func (h *TasksHTTPHandler) DeleteByTaskID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)
