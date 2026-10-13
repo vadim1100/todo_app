@@ -10,15 +10,26 @@ import (
 )
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"vasya"`
+	Password string `json:"password" example:"password123"`
 }
 
 type LoginResponse struct {
 	User UserResponse `json:"user"`
-	Token string `json:"token"`
+	Token string `json:"token" example:"eyJhbGciOiJIUzI1NiIs..."`
 }
 
+// Login godoc
+// @Summary      Вход
+// @Description  Проверяет credentials, возвращает JWT
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body LoginRequest true "Данные входа"
+// @Success      200 {object} LoginResponse
+// @Failure      401 {object} ErrorResponse "неверный логин или пароль"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/login [post]
 func (h *UsersHTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

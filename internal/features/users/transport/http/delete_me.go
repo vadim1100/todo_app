@@ -9,6 +9,15 @@ import (
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 )
 
+// DeleteMe godoc
+// @Summary      Удалить профиль
+// @Tags         users
+// @Security     BearerAuth
+// @Success      204  "успешно"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "пользователь не найден"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/me [delete]
 func (h *UsersHTTPHandler) DeleteMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

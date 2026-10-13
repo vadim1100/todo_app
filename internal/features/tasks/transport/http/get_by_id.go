@@ -10,6 +10,17 @@ import (
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 )
 
+// GetTask godoc
+// @Summary      Получить задачу
+// @Tags         tasks
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "ID задачи"
+// @Success      200 {object} TaskResponse
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      404 {object} ErrorResponse "задача не найдена"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /tasks/{id} [get]
 func (h *TasksHTTPHandler) GetByTaskID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

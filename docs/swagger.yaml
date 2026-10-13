@@ -1,0 +1,454 @@
+basePath: /
+definitions:
+  tasks_http_transport.CreateTaskRequest:
+    properties:
+      description:
+        example: Решить математику
+        type: string
+      title:
+        example: Сделать домашнее задание
+        type: string
+    type: object
+  tasks_http_transport.ErrorResponse:
+    properties:
+      error:
+        example: unauthorized
+        type: string
+      message:
+        example: failed to login
+        type: string
+    type: object
+  tasks_http_transport.TaskResponse:
+    properties:
+      completed:
+        example: false
+        type: boolean
+      completed_at:
+        type: string
+      created_at:
+        example: "2026-10-12T15:00:00Z"
+        type: string
+      description:
+        type: string
+      id:
+        example: 42
+        type: integer
+      title:
+        example: Сделать домашнее задание
+        type: string
+    type: object
+  tasks_http_transport.UpdateTaskRequest:
+    properties:
+      completed:
+        example: true
+        type: boolean
+      description:
+        type: string
+      title:
+        example: Измененный заголовок
+        type: string
+    type: object
+  users_transport_http.ErrorResponse:
+    properties:
+      error:
+        example: unauthorized
+        type: string
+      message:
+        example: failed to login
+        type: string
+    type: object
+  users_transport_http.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: vasya
+        type: string
+    type: object
+  users_transport_http.LoginResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+      user:
+        $ref: '#/definitions/users_transport_http.UserResponse'
+    type: object
+  users_transport_http.PatchRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  users_transport_http.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  users_transport_http.RegisterResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/users_transport_http.UserResponse'
+    type: object
+  users_transport_http.UserResponse:
+    properties:
+      id:
+        example: 1
+        type: integer
+      username:
+        example: vasya
+        type: string
+    type: object
+host: localhost:5678
+info:
+  contact: {}
+  description: Todo-лист с JWT токенами, Redis-кэшем и Kafka (audit-log)
+  title: Todo-List API
+  version: "1.0"
+paths:
+  /tasks:
+    get:
+      description: Возвращает задачи текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tasks_http_transport.TaskResponse'
+            type: array
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Список задач
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Создаёт задачу для текущего пользователя
+      parameters:
+      - description: Тело задачи
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tasks_http_transport.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tasks_http_transport.TaskResponse'
+        "400":
+          description: невалидные данные
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создать задачу
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: успешно удалено
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "404":
+          description: задача не найдена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить задачу
+      tags:
+      - tasks
+    get:
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tasks_http_transport.TaskResponse'
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "404":
+          description: задача не найдена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить задачу
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Тело
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tasks_http_transport.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tasks_http_transport.TaskResponse'
+        "400":
+          description: невалидные данные
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "404":
+          description: задача не найдена
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/tasks_http_transport.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить задачу
+      tags:
+      - tasks
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет credentials, возвращает JWT
+      parameters:
+      - description: Данные входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users_transport_http.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users_transport_http.LoginResponse'
+        "401":
+          description: неверный логин или пароль
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      summary: Вход
+      tags:
+      - users
+  /users/logout:
+    post:
+      description: Добавляет текущий токен в blacklist
+      responses:
+        "204":
+          description: успешно
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выход
+      tags:
+      - users
+  /users/me:
+    delete:
+      responses:
+        "204":
+          description: успешно
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "404":
+          description: пользователь не найден
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить профиль
+      tags:
+      - users
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users_transport_http.UserResponse'
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "404":
+          description: пользователь не найден
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Текущий пользователь
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Новые данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users_transport_http.PatchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users_transport_http.UserResponse'
+        "400":
+          description: невалидные данные
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "401":
+          description: нет токена
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "404":
+          description: пользователь не найден
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "409":
+          description: username занят
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить профиль
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт пользователя, хеширует пароль (bcrypt)
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users_transport_http.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/users_transport_http.RegisterResponse'
+        "400":
+          description: невалидные данные
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "409":
+          description: пользователь уже существует
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+        "500":
+          description: внутренняя ошибка
+          schema:
+            $ref: '#/definitions/users_transport_http.ErrorResponse'
+      summary: Регистрация
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Введите "Bearer <token>"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

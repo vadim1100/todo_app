@@ -11,10 +11,23 @@ import (
 )
 
 type CreateTaskRequest struct {
-	Title string `json:"title"`
-	Description *string `json:"description"`
+	Title string `json:"title" example:"Сделать домашнее задание"`
+	Description *string `json:"description,omitempty" example:"Решить математику"`
 }
 
+// CreateTask godoc
+// @Summary      Создать задачу
+// @Description  Создаёт задачу для текущего пользователя
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body CreateTaskRequest true "Тело задачи"
+// @Success      201 {object} TaskResponse
+// @Failure      400 {object} ErrorResponse "невалидные данные"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /tasks [post]
 func (h *TasksHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

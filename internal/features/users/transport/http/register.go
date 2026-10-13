@@ -19,6 +19,18 @@ type RegisterResponse struct{
 	Token string `json:"token"`
 }
 
+// Register godoc
+// @Summary      Регистрация
+// @Description  Создаёт пользователя, хеширует пароль (bcrypt)
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body RegisterRequest true "Данные регистрации"
+// @Success      201 {object} RegisterResponse
+// @Failure      400 {object} ErrorResponse "невалидные данные"
+// @Failure      409 {object} ErrorResponse "пользователь уже существует"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/register [post]
 func (h *UsersHTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

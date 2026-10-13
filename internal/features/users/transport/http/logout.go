@@ -9,6 +9,15 @@ import (
 	core_http_response "github.com/vadim1100/todo_app/internal/core/transport/http/response"
 )
 
+// Logout godoc
+// @Summary      Выход
+// @Description  Добавляет текущий токен в blacklist
+// @Tags         users
+// @Security     BearerAuth
+// @Success      204  "успешно"
+// @Failure      401 {object} ErrorResponse "нет токена"
+// @Failure      500 {object} ErrorResponse "внутренняя ошибка"
+// @Router       /users/logout [post]
 func (h *UsersHTTPHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)
